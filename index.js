@@ -74,7 +74,7 @@
   // maud.__proto__ = john.__proto = person's prototype
 })();
 
-// Option B2: like B1 but lighter syntax with a factory function
+// Option B2: like B1 but lighter syntax with Object.create() and a factory function
 (function () {
   let person = {
     name: "default",
