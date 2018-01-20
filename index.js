@@ -98,8 +98,6 @@
   }
   let maud = createPerson("maud", 26);
   let john = createPerson("john", 28);
-  console.log(maud);
-  console.log(john);
   // maud.__proto__ = john.__proto = person's prototype
 })();
 
@@ -128,8 +126,40 @@
 // ------------------------------------------------
 
 // Option A
+(function () {
+  class Identity {
+    constructor(name, age) {
+      this.name = name;
+      this.age = age;
+    }
+    getName() {
+      return this.name;
+    }
+  }
+  class Improvisator {
+    constructor(name, age, improStyle) {
+      this.identity = new Identity(name, age);
+      this.improStyle = "savage";
+    }
+    // ... stay flexible
+    // => construct always small objects so that it's easy to compose
+  }
+}());
+// DON'T: DONT INHERIT (`extend`) FROM PERSON, THAT WOULD BE CLASSICAL INHERITANCE,
+// AND IN JS WE FAVOR COMPOSITION AND PROTOTYPAL INHERITANCE OVER CLASSICAL INHERITANCE.
+// One case where that's OK is when creating a Y that is really a X, and with just one level of inheritance. That's OK: class MyApp extends React.Component (MyApp really is a react component, nothing more, nothing less). But because a JS class is already an object, keep in mind that Y inherits from X which exists.
 
-class Identity {
+
+
+
+ // Option B: mixins
+
+
+
+// ------------------------------------------------
+// Avoid: inheritance
+// ------------------------------------------------
+class Person {
   constructor(name, age) {
     this.name = name;
     this.age = age;
@@ -138,24 +168,51 @@ class Identity {
     return this.name;
   }
 }
-class Improvisator {
-  constructor(name, age, improStyle) {
-    this.identity = new Identity(name, age);
-    this.improStyle = "savage";
+// DON'T DO THAT, DOOON'T 
+class Improvisator extends Person {
+  constructor(name, age, style) {
+    super(name, age);
+    this.style = style
   }
-  // ... stay flexible
-  // => construct always small objects so that it's easy to compose
+  improvise() {
+    // do stuff
+  }
+  getStyle() {
+    return this.style;
+  }
 }
-// DON'T: DONT INHERIT (`extend`) FROM PERSON, THAT WOULD BE CLASSICAL INHERITANCE,
-// AND IN JS WE FAVOR COMPOSITION AND PROTOTYPAL INHERITANCE OVER CLASSICAL INHERITANCE.
-// One case where that's OK is when creating a Y that is really a X. That's OK: class MyApp extends React.Component (MyApp really is a react component, nothing more, nothing less). But because a JS class is already an object, keep in mind that Y inherits from X which exists.
-
- // Option B: mixins
-
-
+// DON'T DO THAT, DOOON'T
+class MC extends Improvisator {
+  constructor(name, age, style, hasAHat) {
+    super(name, age, style);
+    this.hasAHat = hasAHat;
+  }
+  introduce() {
+    if (this.hasAHat) {
+      console.log("raising hat");
+    } else {
+      console.log("waving hand");
+    }
+  }
+}
 
 // ------------------------------------------------
-// Other object operations
+// Copy objects
 // ------------------------------------------------
 
 // Copy objects with object.assign
+
+
+// ------------------------------------------------
+// Make an object system immutable
+// ------------------------------------------------
+
+// Object.assign
+// to copy objects instead of mutating them
+
+// Freeze
+// if object x is my prototype, I might want to freeze it so no objects using it as prototype don't get impacted
+// Object.freeze
+
+
+
