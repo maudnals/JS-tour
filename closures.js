@@ -61,7 +61,8 @@ console.log("--------------");
 
 
 /**
- * USE CASE #3: see the call stack
+ * USE CASE #3: see/understand the call stack
+ * (like redux isDispatching)
  */
 
 (function () {
