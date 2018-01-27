@@ -45,7 +45,7 @@ let aradis = new Mage("Aradis");
 
 // Forget about classical inheritance! Combine objects!
 
-// Option 1 (concatenative inheritance 1/2)
+// Option 1: concatenative inheritance (1/2)
 
 (function () {
   const fight = function () {
@@ -72,6 +72,8 @@ let aradis = new Mage("Aradis");
         cast: cast
       }
     );
+
+    // createFighter, createMage: same logics
   }
 
   let paladin1 = createPaladin("paladin1");
@@ -79,7 +81,7 @@ let aradis = new Mage("Aradis");
 })();
 
 
-// Option 2 (concatenative inheritance 2/2)
+// Option 2: concatenative inheritance (2/2)
 
 // upsides: 
 // - clear separation of state and methods
@@ -93,39 +95,9 @@ let aradis = new Mage("Aradis");
   }
 
   const cast = (state) => {
+    // note the use of arrow functions for this option 2 (because no this needed)
     console.log(`${state.name} is casting a spell`);
     state.aura--;
-  }
-
-
-  function createFighter(name) {
-    let state = {
-      name: name,
-      health: 100,
-      stamina: 100,
-    }
-    return Object.assign(
-      {},
-      state,
-      {
-        fight: fight,
-      }
-    );
-  }
-
-  function createMage(name) {
-    let state = {
-      name: name,
-      health: 100,
-      aura: 100
-    }
-    return Object.assign(
-      {},
-      state,
-      {
-        cast: cast,
-      }
-    );
   }
 
   function createPaladin(name) {
@@ -144,42 +116,57 @@ let aradis = new Mage("Aradis");
       }
     );
   }
+  // createFighter, createMage: same logics
 
   let paladin2 = createPaladin("paladin2");
   console.log(paladin2);
 })();
 
 
+// Option 3: prototype delegation
 
-// Option 3 (prototype delegation)
-
-// Interesting: `this` is what enables prototype delegation!
+// `this` is what enables prototype delegation
 // Proto is a basic object, so we can't pass a parameter to it.
 // The only way to reference something external is to use the this keyword.
 
-const proto = {
-  getName: function () {
-    return this.name;
+(function () {
+
+  const proto = {
+    // shared method (save memory)
+    getName: function () {
+      return this.name;
+    }
   }
-}
 
+  const fight = function () {
+    console.log(`${this.name} is fighting`);
+    this.stamina--;
+  }
 
+  const cast = function () {
+    console.log(`${this.name} is casting a spell`);
+    this.aura--;
+  }
 
+  function createPaladin(name) {
+    let state = {
+      name: name,
+      health: 100,
+      stamina: 100,
+      aura: 100
+    }
+    return Object.assign(
+      Object.create(proto),
+      state,
+      {
+        fight: fight,
+        cast: cast
+      }
+    );
+  }
 
+  let paladin3 = createPaladin("paladin3");
+  console.log(paladin3);
+  paladin3.cast();
 
-
-// " this is what enables us to share prototypes "
-// ... really ??
-
-
-// class Bla {
-//   constructor() {
-//     this.name = "hdhdh";
-//   }
-// }
-
-// class Bli {
-// }
-
-// let bla = new Bla();
-// let bli = new Bli();
+})();
