@@ -106,8 +106,16 @@
 (function () {
   class Person {
     constructor(name, age) {
-      this.name = name;
-      this.age = age;
+      // this.name = name;
+      // this.age = age;
+      // Better, more modern:
+      Object.assign(
+        this,
+        {
+          // same as name: name, age: age
+          name,
+          age
+        });
     }
     getName() {
       return this.name;
@@ -120,6 +128,17 @@
 }());
 
 
+// better: pass in an options object:
+(function () {
+  class Person {
+    constructor({ name = "default", age = 0 } = {}) {
+      Object.assign(this, {
+        name,
+        age
+      });
+    }
+  }
+}());
 
 // ------------------------------------------------
 // Compose objects
@@ -152,9 +171,23 @@
 
 
 
- // Option B: mixins
+// Option B: mixins
+
+var calculatorMixin = Base => class extends Base {
+  calc() { }
+};
+
+var randomizerMixin = Base => class extends Base {
+  randomize() { }
+};
+
+class Foo { }
+class Bar extends calculatorMixin(randomizerMixin(Foo)) { }
+
+//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 
 
+// + examples from JEFF
 
 // ------------------------------------------------
 // Avoid: inheritance
