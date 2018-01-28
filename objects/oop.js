@@ -1,8 +1,8 @@
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 // ONE
 // Where everything begins
 // Create an object: the object literal
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 (function () {
 
 
@@ -20,11 +20,11 @@
 
 
 
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 // TWO
 // Create objects that have the same structure:
 // Basic factory function
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 
 // Option A: factory function
 (function () {
@@ -61,12 +61,12 @@
 
 
 
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 // THREE
 // Create objects that share the very same __proto__
 // = OLOO 
 // = prototypal inheritance (saves memory space and makes composition easy)
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 
 
 // Option A: function constructors ("deprecated")
@@ -188,11 +188,11 @@
 
 
 
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 // FOUR
 // Compose objects
 // Making code reusable and modular
-// ------------------------------------------------
+// ------------------------------------------------------------------------------
 
 
 // ⚠️ 
@@ -207,8 +207,10 @@
 
 
 // Option A: simple compose with factory functions
-// -> see MPJ
-// NB: if no need for __proto__, even better: same logics but get rid of Object.create()
+// + with [[prototype]] delegation
+// [because [prototype]] is good for memory saving
+// NB: [[prototype]] delegation is not needed for this simple compose!
+// if no need for a shared [[prototype]], even simpler: look at option C
 
 (function () {
 
@@ -218,6 +220,11 @@
       name: "default",
       age: 0,
       health: 100,
+      // `this` is what enables prototype delegation
+      // proto is just an object, so we can't pass a parameter to it.
+      // so any function inside of it should be able to access the state.
+      // that's what `this` gives us!
+      // The only way to reference something external is to use `this`.
       sayHi: function () {
         console.log(`${this.name} says hi`);
       }
@@ -253,58 +260,32 @@
     )
   }
 
+  // alternative:
+  // let state = {
+  //   name: name,
+  //   health: 100,
+  //   stamina: 100,
+  //   aura: 100
+  // }
+  // return Object.assign(
+  //   Object.create(proto),
+  //   state,
+  //   {
+  //     fight: fight,
+  //     cast: cast
+  //   }
+  // );
+
+
   let x = createCharacter("x", 40);
   let y = createPaladin("y", 90);
 
 })();
 
 
-
-// Option B: Simple Mixin classes without internal state
-
-
-// (function () {
-//   const FighterMixin = Base => class extends Base {
-//     fight() {
-//       console.log(`${this.name} is fighting`);
-//     }
-//   };
-
-//   const MageMixin = Base => class extends Base {
-//     cast() {
-//       console.log(`${this.name} is casting a spell`);
-//     }
-//   };
-
-//   class Character {
-//     constructor(name, age) {
-//       Object.assign(
-//         this,
-//         {
-//           health: 100,
-//           name,
-//           age
-//         }
-//       );
-//     }
-//     sayHi() {
-//       console.log(`${this.name} says hi`);
-//     }
-//   }
-
-//   class Paladin extends FighterMixin(MageMixin(Character)) { }
-
-//   let jon = new Paladin("jon", 30);
-//   console.log(jon);
-// })();
-
-
-
-
-
-
-
 // Option B: Mixin classes
+// (with some [[prototype]] stuff)
+// [[prototype]] is good for memory saving
 // in the style of https://medium.com/@declanjdewet/i-think-this-article-is-missing-a-more-detailed-section-on-class-mixins-ad6953ae2efd
 // and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
 /**
@@ -365,9 +346,92 @@
 
 
 
-// Option C (only for simple cases)
+// Option C: simple concatenative inheritance
+// better for truly independent objects, but less good for memory 
 
-function() {
+// with`this`:
+
+(function () {
+  const fight = function () {
+    console.log(`${this.name} is fighting`);
+    this.stamina--;
+  }
+
+  const cast = function () {
+    console.log(`${this.name} is casting a spell`);
+    this.aura--;
+  }
+
+  function createPaladin(name) {
+    return Object.assign(
+      {},
+      {
+        name: name,
+        health: 100
+      }, {
+        stamina: 100,
+        fight: fight,
+      }, {
+        aura: 100,
+        cast: cast
+      }
+    );
+
+    // createFighter, createMage: same logics
+  }
+
+  let paladin1 = createPaladin("paladin1");
+  console.log(paladin1);
+})();
+
+
+// without `this`:
+// upsides:
+// - clear separation of state and methods
+// - this-free code
+// - less easily refactorable to a [[prototype]]-based implementation
+
+(function () {
+  const fight = (state) => {
+    console.log(`${state.name} is fighting`);
+    state.stamina--;
+  }
+
+  const cast = (state) => {
+    // note arrow functions (no `this` needed here)
+    console.log(`${state.name} is casting a spell`);
+    state.aura--;
+  }
+
+  function createPaladin(name) {
+    let state = {
+      name: name,
+      health: 100,
+      stamina: 100,
+      aura: 100
+    }
+    return Object.assign(
+      {},
+      state,
+      {
+        fight: fight,
+        cast: cast,
+      }
+    );
+  }
+  // createFighter, createMage: same logics
+  let paladin2 = createPaladin("paladin2");
+  console.log(paladin2);
+})();
+
+
+
+
+// Option D (only for simple cases)
+// from https://medium.com/@dtinth/es6-class-classical-inheritance-20f4726f4c4
+
+
+(function () {
   class X {
   }
 
@@ -376,82 +440,29 @@ function() {
       this.x = new X();
     }
   }
-}
+})();
 
 
-// class Character {
-//   constructor(name, age) {
-//     Object.assign(
-//       this,
-//       {
-//         health: 100,
-//         name,
-//         age
-//       }
-//     );
-//   }
-//   sayHi() {
-//     console.log(`${this.name} says hi`);
-//   }
-// }
-
-// let FighterMixin = Base => class extends Base {
-//   // can't define stamina here!!
-//   fight() {
-//     console.log(`${this.name} is fighting`);
-//     this.stamina--;
-//   }
-// };
-
-// let MageMixin = Base => class extends Base {
-//   constructor(a, b) {
-//     super(a, b);
-//     this.aura = 100;
-//   }
-//   cast() {
-//     console.log(`${this.name} is casting a spell`);
-//     this.aura--;
-//   }
-// };
-
-// class Character {
-//   constructor(name, age) {
-//     Object.assign(
-//       this,
-//       {
-//         health: 100,
-//         name,
-//         age
-//       }
-//     );
-//   }
-//   sayHi() {
-//     console.log(`${this.name} says hi`);
-//   }
-// }
-// class Paladin extends MageMixin(Character) {
-// }
-// let paladin = new Paladin("jon", 30);
-// console.log(paladin);
-
-
-
-
-
-
-// Option C: copy objects
-// with Object.assign
 
 
 // Option D: Eric's stuff
 
 
 
-// ------------------------------------------------
-// Miscellaneous
-// ------------------------------------------------
 
-// (Im)nutability considerations
+
+
+
+
+
+// ------------------------------------------------------------------------------
+// Miscellaneous
+// ------------------------------------------------------------------------------
+
+
+
+// (Im)mutability considerations
+
 
 /**
  * Objects
@@ -472,7 +483,10 @@ function() {
  */
 
 
+
+
  // API improvements
+
 
  /**
   * cast() and spell() methods 
