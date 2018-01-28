@@ -118,10 +118,12 @@
         console.log(`${this.name} says hi`);
       }
     }
-    // !!! if want the proto to be immutable,
-    // const is not enough because it's an object!
-    // adding and modifying ppties will be allowed!!!
-    // use Object.freeze or Object.seal instead.
+    /**
+     * !!! if want the proto to be immutable,
+     * const is not enough because it's an object!
+     * So adding and modifying ppties will be allowed.
+     * => use Object.freeze or Object.seal instead.
+     */
     return Object.assign(
       Object.create(personProto),
       {
@@ -192,12 +194,109 @@
 // Making code reusable and modular
 // ------------------------------------------------
 
+
+// ⚠️ 
+// For what follows I use character as proto
+// But the same logics work wothout this contraint!!
+// Qui peut le plus peut le moins!
+
+
 // Option nope: classical inheritance (class Y extends X)
 // AVOID!!!!
 // ONLY 1 LEVEL IS OK
 
+
 // Option A: simple compose with factory functions
 // -> see MPJ
+// NB: if no need for __proto__, even better: same logics but get rid of Object.create()
+
+(function () {
+
+
+  function createCharacter(name, age) {
+    const proto = {
+      name: "default",
+      age: 0,
+      health: 100,
+      sayHi: function () {
+        console.log(`${this.name} says hi`);
+      }
+    }
+    return Object.assign(
+      Object.create(proto),
+      {
+        name,
+        age
+      }
+    );
+  }
+
+  const cast = function () {
+    console.log(`${this.name} is casting a spell`);
+    this.aura--;
+  }
+
+  const fight = function () {
+    console.log(`${this.name} is fighting`);
+    this.stamina--;
+  }
+
+  function createPaladin(name, age) {
+    return Object.assign(
+      createCharacter(name, age),
+      {
+        aura: 100,
+        cast: cast,
+        stamina: 100,
+        fight: fight
+      },
+    )
+  }
+
+  let x = createCharacter("x", 40);
+  let y = createPaladin("y", 90);
+
+})();
+
+
+
+// Option B: Simple Mixin classes without internal state
+
+
+// (function () {
+//   const FighterMixin = Base => class extends Base {
+//     fight() {
+//       console.log(`${this.name} is fighting`);
+//     }
+//   };
+
+//   const MageMixin = Base => class extends Base {
+//     cast() {
+//       console.log(`${this.name} is casting a spell`);
+//     }
+//   };
+
+//   class Character {
+//     constructor(name, age) {
+//       Object.assign(
+//         this,
+//         {
+//           health: 100,
+//           name,
+//           age
+//         }
+//       );
+//     }
+//     sayHi() {
+//       console.log(`${this.name} says hi`);
+//     }
+//   }
+
+//   class Paladin extends FighterMixin(MageMixin(Character)) { }
+
+//   let jon = new Paladin("jon", 30);
+//   console.log(jon);
+// })();
 
 
 
@@ -205,32 +304,31 @@
 
 
 
-
-
-// A2: like A1, but with classes (?)
-// the asian dude
-
-
-
-
-// Option B1: Simple Mixin classes without internal state
+// Option B: Mixin classes
 // in the style of https://medium.com/@declanjdewet/i-think-this-article-is-missing-a-more-detailed-section-on-class-mixins-ad6953ae2efd
 // and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
-
-// Abstract subclasses or mix-ins are templates for classes. An ECMAScript class can only have a single superclass, so multiple inheritance from tooling classes, for example, is not possible. The functionality must be provided by the superclass.
-// A JS Mixin:
-// A function taking a superclass as input and outputing a subclass extending that superclass.
+/**
+ * Abstract subclasses or mix-ins are templates for classes. 
+ * A JS class can only have a single superclass, so multiple inheritance 
+ * from tooling classes, for example, is not possible. 
+ * The functionality must be provided by the superclass.
+ * A JS Mixin = a function taking a superclass as input and outputing a 
+ * subclass extending that superclass.
+ */
+// + See my medium question: https://medium.com/@uxseeds/hi-declan-42e0ada314d7
 
 (function () {
   const FighterMixin = Base => class extends Base {
     fight() {
       console.log(`${this.name} is fighting`);
+      this.stamina--;
     }
   };
 
   const MageMixin = Base => class extends Base {
     cast() {
       console.log(`${this.name} is casting a spell`);
+      this.aura--;
     }
   };
 
@@ -250,73 +348,35 @@
     }
   }
 
-  class Paladin extends FighterMixin(MageMixin(Character)) { }
+  class Paladin extends FighterMixin(MageMixin(Character)) {
+    constructor(name, age) {
+      super(name, age);
+      this.stamina = 100;
+      this.aura = 100;
+    }
+  }
 
   let jon = new Paladin("jon", 30);
+  jon.cast();
+  jon.fight();
   console.log(jon);
+
 })();
 
 
 
+// Option C (only for simple cases)
 
-
-
-
-// Option B3: Mixin classes WITH state
-// I DONT KNOW
-// see my medium question
-// https://medium.com/@uxseeds/hi-declan-42e0ada314d7
-// maybe a solution is to pass in the state??
-
-// (function () {
-const FighterMixin = Base => class extends Base {
-  fight() {
-    console.log(`${this.name} is fighting`);
-    this.stamina--;
+function() {
+  class X {
   }
-};
 
-const MageMixin = Base => class extends Base {
-  cast() {
-    console.log(`${this.name} is casting a spell`);
-    this.aura--;
-  }
-};
-
-class Character {
-  constructor(name, age) {
-    Object.assign(
-      this,
-      {
-        health: 100,
-        name,
-        age
-      }
-    );
-  }
-  sayHi() {
-    console.log(`${this.name} says hi`);
+  class Y {
+    constructor() {
+      this.x = new X();
+    }
   }
 }
-
-class Paladin extends FighterMixin(MageMixin(Character)) {
-  constructor(name, age) {
-    super(name, age);
-    this.stamina = 100;
-    this.aura = 100;
-  }
-}
-
-let jon = new Paladin("jon", 30);
-jon.cast();
-jon.fight();
-console.log(jon);
-
-
-  // imrpovement idea:
-  // for method binding:
-  // return this;
-// })();
 
 
 // class Character {
@@ -388,17 +448,37 @@ console.log(jon);
 
 
 // ------------------------------------------------
-// Mutability considerations
+// Miscellaneous
 // ------------------------------------------------
 
-// Object.assign: copies objects instead of mutating them
+// (Im)nutability considerations
 
-// Object.freeze / Object.seal
-// if an object is my prototype, I might want to make it immutable so that no other objects using it as prototype don't get impacted.
-// const is not enough because it's an object, so adding and modifying ppties will be allowed!!!
+/**
+ * Objects
+ * 
+ * Object.assign is good for FP because it
+ * copies objects instead of mutating them.
+ */
+
+/**
+ * [[Proto]]
+ * 
+ * If i define myself an object as my [[Proto]],
+ * I might want to make it immutable so that no objects using it as prototype
+ * gets impacted.
+ * const is not enough because it's an object.
+ * So adding and modifying ppties will be allowed
+ * ==> use Object.freeze or Object.seal (depending on what's needed) instead.
+ */
 
 
+ // API improvements
 
+ /**
+  * cast() and spell() methods 
+  * could return `this` to facilitate method chaining:
+  * .cast().fight();
+  */
 
 
 
