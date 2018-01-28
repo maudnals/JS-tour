@@ -485,7 +485,7 @@
 
 
 
- // API improvements
+ // API improvement ideas
 
 
  /**
@@ -493,65 +493,3 @@
   * could return `this` to facilitate method chaining:
   * .cast().fight();
   */
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// (function () {
-//   class Character {
-//     constructor(name, age) {
-//       Object.assign(
-//         this,
-//         {
-//           health: 100,
-//           name,
-//           age
-//         }
-//       );
-//     }
-//     sayHi() {
-//       console.log(`${this.name} says hi`);
-//     }
-//   }
-//   class FighterTrait {
-//     constructor(name, age) {
-//       this.identity = new Character(name, age);
-//       this.stamina = 100;
-//     }
-//     fight() {
-//       console.log(`${this.name} is fighting`);
-//       this.stamina--;
-//     }
-//   }
-//   class MageTrait {
-//     constructor(name, age) {
-//       this.identity = new Character(name, age);
-//       this.aura = 100;
-//     }
-//     cast() {
-//       console.log(`${this.name} is casting a spell`);
-//       this.aura--;
-//     }
-//   }
-//   class Paladin {
-//     constructor(name, age) {
-//       this.identity = new Character(name, age);
-//       this.magetrait = new MageTrait(name, age);
-//       this.fighterTrait = new FighterTrait(name, age);
-//     }
-//   }
-
-//   let g = new Paladin("g", 34);
-//   console.log(g);
-// }());
