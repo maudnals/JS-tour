@@ -1,48 +1,73 @@
 // ------------------------------------------------
-// The beginning of everything
-// Create an object basics: the object literal
+// ONE
+// Where everything begins
+// Create an object: the object literal
 // ------------------------------------------------
 (function () {
+
 
   let maud = {
     name: "maud",
     age: 26,
-    getName: function () {
-      return this.name;
+    sayHi: function () {
+      console.log(`${this.name} says hi`);
     }
   };
+
 
 })();
 
 
+
+
 // ------------------------------------------------
-// Create objects that have the same structure
-// ------------------------------------------------
+// TWO
+// Create objects that have the same structure:
 // Basic factory function
+// ------------------------------------------------
+
+// Option A: factory function
 (function () {
+
+
   function createPerson(name, age) {
-    return {
-      name: name,
-      age: age,
-      getName: function () {
-        return this.name;
-      }
-    };
+    // or: simple return { }
+    return Object.assign(
+      {},
+      {
+        name,
+        age,
+        sayHi: function () {
+          console.log(`${this.name} says hi`);
+        }
+      });
   }
+
+
   let maud = createPerson("maud", 26);
   let john = createPerson("john", 28);
   // maud.__proto__ and john.__proto = simple Object
 }());
-// But... getName method exists 2* in memory! => need something better.
+
+// Option A':
+// variation with closure for privacy
+
+
+
+// ::::::::::::::::::::::::::::::::::::::::::::::::
+// But... sayHi method exists 2* in memory! => need something better.
+// ::::::::::::::::::::::::::::::::::::::::::::::::
+
 
 
 
 // ------------------------------------------------
-// One step further:
-// Create objects that are really like other objects - ie that share the very same __proto__
+// THREE
+// Create objects that share the very same __proto__
 // = OLOO 
 // = prototypal inheritance (saves memory space and makes composition easy)
 // ------------------------------------------------
+
 
 // Option A: function constructors ("deprecated")
 (function () {
@@ -52,8 +77,8 @@
     this.age = age;
   }
 
-  Person.prototype.getName = function () {
-    return this.name;
+  Person.prototype.sayHi = function () {
+    console.log(`${this.name} says hi`);
   }
 
   let maud = new Person("maud", 26);
@@ -61,64 +86,72 @@
   // maud.__proto__ = john.__proto = Person's prototype
 })();
 
-// Option B1: pure prototypal inheritance with Object.create()
+
+// Option B1 pure prototypal inheritance with Object.create()
 (function () {
   let person = {
     name: "default",
     age: null,
-    getName: function () {
-      return this.name;
+    sayHi: function () {
+      console.log(`${this.name} says hi`);
     }
   }
-  let maud = Object.create(person);
-  maud.name = "maud";
-  maud.age = 26;
-  let john = Object.create(person);
-  john.name = "john";
-  john.age = 28;
+  // let maud = Object.assign(
+  //   Object.create(person),
+  //   {
+  //     age,
+  //     name
+  //   }
+  // );
   // maud.__proto__ = john.__proto = person's prototype
 })();
 
-// Option B2: like B1 but lighter syntax with Object.create() and a factory function
+
+// Option B2: like B1 but lighter syntax with Object.create() and a factory function and a closure
 (function () {
   function createPerson(name, age) {
     // closure
-    let person = {
+    const personProto = {
       name: "default",
       age: null,
-      getName: function () {
-        return this.name;
+      sayHi: function () {
+        console.log(`${this.name} says hi`);
       }
     }
-    return Object.assign(Object.create(person), {
-      // or shorthand name, age
-      name: name,
-      age: age
-    });
+    // !!! if want the proto to be immutable,
+    // const is not enough because it's an object!
+    // adding and modifying ppties will be allowed!!!
+    // use Object.freeze or Object.seal instead.
+    return Object.assign(
+      Object.create(personProto),
+      {
+        // shorthand for name:name, age
+        name,
+        age
+      }
+    );
   }
   let maud = createPerson("maud", 26);
   let john = createPerson("john", 28);
   // maud.__proto__ = john.__proto = person's prototype
 })();
 
-// Option C: ES6 class
-// = sugar coating over option A
+
+// Option B2': like B2 but with utils/other stuff in closure for privacy
+
+// Option C: ES6 class (sugar coating over option A)
 (function () {
   class Person {
     constructor(name, age) {
-      // this.name = name;
-      // this.age = age;
-      // Better, more modern:
       Object.assign(
         this,
         {
-          // same as name: name, age: age
           name,
           age
         });
     }
-    getName() {
-      return this.name;
+    sayHi() {
+      console.log(`${this.name} says hi`);
     }
   }
   let maud = new Person("maud", 26);
@@ -128,7 +161,7 @@
 }());
 
 
-// better: pass in an options object:
+// Option C': alternative syntax (pass in an options object)
 (function () {
   class Person {
     constructor({ name = "default", age = 0 } = {}) {
@@ -140,112 +173,291 @@
   }
 }());
 
+
+
+
+// ::::::::::::::::::::::::::::::::::::::::::::::::
+// OK, now i can create objects with shared prototypes.
+// This saves memory, but what if I want separated states?
+// And how to create objects partly-similar to each other?
+// And make code really reusable?
+// ::::::::::::::::::::::::::::::::::::::::::::::::
+
+
+
+
 // ------------------------------------------------
+// FOUR
 // Compose objects
+// Making code reusable and modular
 // ------------------------------------------------
 
-// Option A
+// Option nope: classical inheritance (class Y extends X)
+// AVOID!!!!
+// ONLY 1 LEVEL IS OK
+
+// Option A: simple compose with factory functions
+// -> see MPJ
+
+
+
+
+
+
+
+
+
+// A2: like A1, but with classes (?)
+// the asian dude
+
+
+
+
+// Option B1: Simple Mixin classes without internal state
+// in the style of https://medium.com/@declanjdewet/i-think-this-article-is-missing-a-more-detailed-section-on-class-mixins-ad6953ae2efd
+// and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
+
+// Abstract subclasses or mix-ins are templates for classes. An ECMAScript class can only have a single superclass, so multiple inheritance from tooling classes, for example, is not possible. The functionality must be provided by the superclass.
+// A JS Mixin:
+// A function taking a superclass as input and outputing a subclass extending that superclass.
+
 (function () {
-  class Identity {
+  const FighterMixin = Base => class extends Base {
+    fight() {
+      console.log(`${this.name} is fighting`);
+    }
+  };
+
+  const MageMixin = Base => class extends Base {
+    cast() {
+      console.log(`${this.name} is casting a spell`);
+    }
+  };
+
+  class Character {
     constructor(name, age) {
-      this.name = name;
-      this.age = age;
+      Object.assign(
+        this,
+        {
+          health: 100,
+          name,
+          age
+        }
+      );
     }
-    getName() {
-      return this.name;
+    sayHi() {
+      console.log(`${this.name} says hi`);
     }
   }
-  class Improvisator {
-    constructor(name, age, improStyle) {
-      this.identity = new Identity(name, age);
-      this.improStyle = "savage";
-    }
-    // ... stay flexible
-    // => construct always small objects so that it's easy to compose
+
+  class Paladin extends FighterMixin(MageMixin(Character)) { }
+
+  let jon = new Paladin("jon", 30);
+  console.log(jon);
+})();
+
+
+
+
+
+
+
+// Option B3: Mixin classes WITH state
+// I DONT KNOW
+// see my medium question
+// https://medium.com/@uxseeds/hi-declan-42e0ada314d7
+// maybe a solution is to pass in the state??
+
+// (function () {
+const FighterMixin = Base => class extends Base {
+  fight() {
+    console.log(`${this.name} is fighting`);
+    this.stamina--;
   }
-}());
-// DON'T: DONT INHERIT (`extend`) FROM PERSON, THAT WOULD BE CLASSICAL INHERITANCE,
-// AND IN JS WE FAVOR COMPOSITION AND PROTOTYPAL INHERITANCE OVER CLASSICAL INHERITANCE.
-// One case where that's OK is when creating a Y that is really a X, and with just one level of inheritance. That's OK: class MyApp extends React.Component (MyApp really is a react component, nothing more, nothing less). But because a JS class is already an object, keep in mind that Y inherits from X which exists.
-
-
-
-
-// Option B: mixins
-
-var calculatorMixin = Base => class extends Base {
-  calc() { }
 };
 
-var randomizerMixin = Base => class extends Base {
-  randomize() { }
+const MageMixin = Base => class extends Base {
+  cast() {
+    console.log(`${this.name} is casting a spell`);
+    this.aura--;
+  }
 };
 
-class Foo { }
-class Bar extends calculatorMixin(randomizerMixin(Foo)) { }
-
-//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
-
-
-// + examples from JEFF
-
-// ------------------------------------------------
-// Avoid: inheritance
-// ------------------------------------------------
-class Person {
+class Character {
   constructor(name, age) {
-    this.name = name;
-    this.age = age;
+    Object.assign(
+      this,
+      {
+        health: 100,
+        name,
+        age
+      }
+    );
   }
-  getName() {
-    return this.name;
+  sayHi() {
+    console.log(`${this.name} says hi`);
   }
 }
-// DON'T DO THAT, DOOON'T 
-class Improvisator extends Person {
-  constructor(name, age, style) {
+
+class Paladin extends FighterMixin(MageMixin(Character)) {
+  constructor(name, age) {
     super(name, age);
-    this.style = style
-  }
-  improvise() {
-    // do stuff
-  }
-  getStyle() {
-    return this.style;
-  }
-}
-// DON'T DO THAT, DOOON'T
-class MC extends Improvisator {
-  constructor(name, age, style, hasAHat) {
-    super(name, age, style);
-    this.hasAHat = hasAHat;
-  }
-  introduce() {
-    if (this.hasAHat) {
-      console.log("raising hat");
-    } else {
-      console.log("waving hand");
-    }
+    this.stamina = 100;
+    this.aura = 100;
   }
 }
 
+let jon = new Paladin("jon", 30);
+jon.cast();
+jon.fight();
+console.log(jon);
+
+
+  // imrpovement idea:
+  // for method binding:
+  // return this;
+// })();
+
+
+// class Character {
+//   constructor(name, age) {
+//     Object.assign(
+//       this,
+//       {
+//         health: 100,
+//         name,
+//         age
+//       }
+//     );
+//   }
+//   sayHi() {
+//     console.log(`${this.name} says hi`);
+//   }
+// }
+
+// let FighterMixin = Base => class extends Base {
+//   // can't define stamina here!!
+//   fight() {
+//     console.log(`${this.name} is fighting`);
+//     this.stamina--;
+//   }
+// };
+
+// let MageMixin = Base => class extends Base {
+//   constructor(a, b) {
+//     super(a, b);
+//     this.aura = 100;
+//   }
+//   cast() {
+//     console.log(`${this.name} is casting a spell`);
+//     this.aura--;
+//   }
+// };
+
+// class Character {
+//   constructor(name, age) {
+//     Object.assign(
+//       this,
+//       {
+//         health: 100,
+//         name,
+//         age
+//       }
+//     );
+//   }
+//   sayHi() {
+//     console.log(`${this.name} says hi`);
+//   }
+// }
+// class Paladin extends MageMixin(Character) {
+// }
+// let paladin = new Paladin("jon", 30);
+// console.log(paladin);
+
+
+
+
+
+
+// Option C: copy objects
+// with Object.assign
+
+
+// Option D: Eric's stuff
+
+
+
 // ------------------------------------------------
-// Copy objects
+// Mutability considerations
 // ------------------------------------------------
 
-// Copy objects with object.assign
+// Object.assign: copies objects instead of mutating them
 
-
-// ------------------------------------------------
-// Make an object system immutable
-// ------------------------------------------------
-
-// Object.assign
-// to copy objects instead of mutating them
-
-// Freeze
-// if object x is my prototype, I might want to freeze it so no objects using it as prototype don't get impacted
-// Object.freeze
+// Object.freeze / Object.seal
+// if an object is my prototype, I might want to make it immutable so that no other objects using it as prototype don't get impacted.
+// const is not enough because it's an object, so adding and modifying ppties will be allowed!!!
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// (function () {
+//   class Character {
+//     constructor(name, age) {
+//       Object.assign(
+//         this,
+//         {
+//           health: 100,
+//           name,
+//           age
+//         }
+//       );
+//     }
+//     sayHi() {
+//       console.log(`${this.name} says hi`);
+//     }
+//   }
+//   class FighterTrait {
+//     constructor(name, age) {
+//       this.identity = new Character(name, age);
+//       this.stamina = 100;
+//     }
+//     fight() {
+//       console.log(`${this.name} is fighting`);
+//       this.stamina--;
+//     }
+//   }
+//   class MageTrait {
+//     constructor(name, age) {
+//       this.identity = new Character(name, age);
+//       this.aura = 100;
+//     }
+//     cast() {
+//       console.log(`${this.name} is casting a spell`);
+//       this.aura--;
+//     }
+//   }
+//   class Paladin {
+//     constructor(name, age) {
+//       this.identity = new Character(name, age);
+//       this.magetrait = new MageTrait(name, age);
+//       this.fighterTrait = new FighterTrait(name, age);
+//     }
+//   }
+
+//   let g = new Paladin("g", 34);
+//   console.log(g);
+// }());
