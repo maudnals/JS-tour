@@ -1,4 +1,3 @@
-
 // Example of classical inheritance - what should NOT be done
 
 class Person {
@@ -47,10 +46,22 @@ let x = new Person({ name: 'x', age: 30 });
 
 let maud = new Actor({ name: 'maud', age: 26, auraScore: 100 });
 
-let joe = new Improvisator({ name: 'joe', age: 28, auraScore: 140, improStyle: 'savage', teamColor: 'green' });
+let joe = new Improvisator({
+  name: 'joe',
+  age: 28,
+  auraScore: 140,
+  improStyle: 'savage',
+  teamColor: 'green'
+});
 
-let david = new Referee({ name: 'david', age: 40, auraScore: 80, improStyle: 'badcop', teamColor: '', hasAWhistle: true });
-
+let david = new Referee({
+  name: 'david',
+  age: 40,
+  auraScore: 80,
+  improStyle: 'badcop',
+  teamColor: '',
+  hasAWhistle: true
+});
 
 console.log(x);
 console.log(maud);

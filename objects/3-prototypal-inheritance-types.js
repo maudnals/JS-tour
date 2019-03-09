@@ -1,6 +1,5 @@
 // There are 3 types of prototypal inheritance.
 
-
 let persons = [];
 
 // #1 PROTOTYPE DELEGATION
@@ -12,7 +11,6 @@ let persons = [];
 // + shall i use const???
 
 (function prototypeDelegation() {
-
   // with a factory function:
 
   let person = {
@@ -21,10 +19,10 @@ let persons = [];
     age: 0,
     species: 'human',
     // Methods: super useful, great to share them!
-    getName: function () {
+    getName: function() {
       return this.name;
     }
-  }
+  };
 
   let maud = Object.assign(Object.create(person), { name: 'maud', age: 27 });
 
@@ -48,14 +46,12 @@ let persons = [];
   persons = [...persons, maud, jo];
 })();
 
-
 /** ⚠️
  * Object.assign({}, ...)
  * vs.
  * Object.create(x)
  * mostly we use Object.create with just one argument.
-*/
-
+ */
 
 // #2 CLONING (= CONCATENATIVE INHERITANCE) (= EXTENDING OBJECTS)
 // It's a form of composition.
@@ -68,18 +64,15 @@ let persons = [];
     name: 'default',
     age: 0,
     species: 'human',
-    getName: function () {
+    getName: function() {
       return this.name;
     }
-  }
+  };
 
-  let scar = Object.assign(
-    {},
-    person,
-    {
-      name: 'scar',
-      age: 29
-    });
+  let scar = Object.assign({}, person, {
+    name: 'scar',
+    age: 29
+  });
 
   persons = [...persons, '---', scar];
 
@@ -88,10 +81,10 @@ let persons = [];
   let nalpasMixin = {
     // shared behaviours
     rootLocation: 'oise',
-    goesRunning: function () {
-      console.log(`run along ${this.rootLocation}`)
-    },
-  }
+    goesRunning: function() {
+      console.log(`run along ${this.rootLocation}`);
+    }
+  };
 
   let juliet = Object.assign(
     {},
@@ -114,43 +107,39 @@ let persons = [];
   );
 
   nalpasMixin = {
-    // not reassigned
-    bla: function () {
-    },
-  }
+    // !!! not reassigned, the ppties have just been copied
+    bla: function() {}
+  };
   persons = [...persons, '---', juliet, jerome];
-
 })();
 
 console.log(persons);
 
-
 // #3 FUNCTIONAL INHERITANCE
 // = factory functions then cloning
-// = concatenative inheritance with closures 
+// = concatenative inheritance with closures
 
 (function functionalInheritance() {
-
   let person = {
     name: 'default',
     age: 0,
     species: 'human',
-    getName: function () {
+    getName: function() {
       return this.name;
     }
-  }
+  };
 
-  const nalpasMixin = function () {
+  const nalpasMixin = function() {
     const rootLocation = 'oise';
     // use closure to ensure privacy
     // now rootLocation can not be available from public API,
     // the only way to use it is via privileged methods
     // privileged methods = methods defined within the closure's function scope
     return {
-      goesRunning: function () {
+      goesRunning: function() {
         console.log(`run along ${rootLocation}`);
       }
-    }
+    };
   };
 
   let maud = Object.assign(
@@ -164,5 +153,4 @@ console.log(persons);
   );
 
   persons = [...persons, '---', maud];
-
 })();
